@@ -1,9 +1,6 @@
 package handler
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/ApirakPhuphanphet/Go-postgresql/db"
 	"github.com/ApirakPhuphanphet/Go-postgresql/models"
 	"github.com/gofiber/fiber/v2"
@@ -14,7 +11,6 @@ var DB = db.DatabaseConnection()
 
 func Signup(c *fiber.Ctx) error {
 	newUser := new(models.User)
-	start := time.Now()
 
 	if err := c.BodyParser(newUser); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -37,7 +33,6 @@ func Signup(c *fiber.Ctx) error {
 
 	result := DB.Create(&newUser)
 
-	fmt.Print("Time: " + time.Since(start).String())
 	return c.Status(fiber.StatusCreated).JSON(result)
 }
 
@@ -49,12 +44,17 @@ func Signin(c *fiber.Ctx) error {
 
 	var dbUser models.User
 	DB.Where("username = ?", user.Username).First(&dbUser)
+
+	if dbUser.Username == "" {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "user not found"})
+	}
+
 	err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password))
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "incorrect password"})
 	}
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Sign in success"})
+	dbUser.Password = ""
+	return c.Status(fiber.StatusOK).JSON(dbUser)
 }
 
 func DeleteUser(c *fiber.Ctx) error {

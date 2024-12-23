@@ -10,9 +10,15 @@ import (
 func router(app *fiber.App) {
 	app.Post("/user/signup", handler.Signup)
 	app.Post("/user/signin", handler.Signin)
-	app.Delete("/user/:id", handler.DeleteUser)
 	app.Get("/user/:id", handler.GetUser)
 	app.Put("/user/:id", handler.UpdateUser)
+	app.Delete("/user/:id", handler.DeleteUser)
+
+	app.Post("/product/create", handler.CreateProduct)
+	app.Get("/product", handler.GetAllProduct)
+	app.Get("/product/:id", handler.GetProductById)
+	app.Put("/product/:id", handler.UpdateProduct)
+	app.Delete("/product/:id", handler.DeleteProduct)
 }
 
 func main() {
@@ -21,6 +27,7 @@ func main() {
 	DB := db.DatabaseConnection()
 
 	DB.AutoMigrate(&models.User{})
+	DB.AutoMigrate(&models.Product{})
 
 	router(app)
 
